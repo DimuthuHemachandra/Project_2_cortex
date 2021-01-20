@@ -23,15 +23,15 @@ diffparc_dir = config['diffparc_dir']
 
 rule all:
     input: 
-        #clusters = expand('../derivatives/analysis/gradients/sub-{subject}/gradient_{componant}_image.nii.gz',subject=subjects, componant=componants),
+        clusters = expand('../derivatives/analysis/gradients/sub-{subject}/gradient_{componant}_image.nii.gz',subject=subjects, componant=componants),
         #file_test = expand('/home/dimuthu1/scratch/project2/derivatives/analysis/gradients/sub-{subject}/surfaces/plotL_grad_{componant}.func.gii',subject=subjects, componant=componants),
-        #files_lh = expand('../derivatives/analysis/hcp_stat/sub-{subject}/{subject}_hcp_all_stat_lh.png',subject=subjects),
-        #files_rh = expand('../derivatives/analysis/hcp_stat/sub-{subject}/{subject}_hcp_all_stat_lh.png',subject=subjects),
-        #R_emb = expand('../derivatives/analysis/striatum_gradients/sub-{subject}/sub-{subject}_R_emb.npy',subject=subjects),
-        #L_emb = expand('../derivatives/analysis/striatum_gradients/sub-{subject}/sub-{subject}_L_emb.npy',subject=subjects),
-        #aligned_grads = expand('../derivatives/analysis/striatum_aligned_gradients/sub-{subject}_gradients.csv',subject=subjects),
-        #myelin_stat_L_txt = expand('/home/dimuthu1/scratch/project2/derivatives/analysis/hcp_stat/sub-{subject}/sub-{subject}_mean-myelin_L.txt',subject=subjects),
-        #myelin_stat_R_txt = expand('/home/dimuthu1/scratch/project2/derivatives/analysis/hcp_stat/sub-{subject}/sub-{subject}_mean-myelin_R.txt',subject=subjects),
+        files_lh = expand('../derivatives/analysis/hcp_stat/sub-{subject}/{subject}_hcp_all_stat_lh.png',subject=subjects),
+        files_rh = expand('../derivatives/analysis/hcp_stat/sub-{subject}/{subject}_hcp_all_stat_lh.png',subject=subjects),
+        R_emb = expand('../derivatives/analysis/gradients/sub-{subject}/sub-{subject}_R_emb.npy',subject=subjects),
+        L_emb = expand('../derivatives/analysis/gradients/sub-{subject}/sub-{subject}_L_emb.npy',subject=subjects),
+        aligned_grads = expand('../derivatives/analysis/aligned_gradients/sub-{subject}_gradients.csv',subject=subjects),
+        myelin_stat_L_txt = expand('/home/dimuthu1/scratch/project2/derivatives/analysis/hcp_stat/sub-{subject}/sub-{subject}_mean-myelin_L.txt',subject=subjects),
+        myelin_stat_R_txt = expand('/home/dimuthu1/scratch/project2/derivatives/analysis/hcp_stat/sub-{subject}/sub-{subject}_mean-myelin_R.txt',subject=subjects),
         Group_plot_L = ['../derivatives/analysis/group_analysis/group_stat_L.png', '../derivatives/analysis/group_analysis/group_stat_R.png']
 
         
@@ -41,13 +41,13 @@ rule all:
 rule get_gradients: 
     input: Right = join(config['diffparc_dir'],config['Right_mat']),
            Left = join(config['diffparc_dir'],config['Left_mat']),
-           gradient_path = '../derivatives/analysis/striatum_gradients/'
-    output: gradient = '../derivatives/analysis/striatum_gradients/sub-{subject}/sub-{subject}_gradients.csv',  
-	    R_emb = '../derivatives/analysis/striatum_gradients/sub-{subject}/sub-{subject}_R_emb.npy', 
-	    L_emb = '../derivatives/analysis/striatum_gradients/sub-{subject}/sub-{subject}_L_emb.npy'   
+           gradient_path = '../derivatives/analysis/gradients/'
+    output: gradient = '../derivatives/analysis/gradients/sub-{subject}/sub-{subject}_gradients.csv',  
+	    R_emb = '../derivatives/analysis/gradients/sub-{subject}/sub-{subject}_R_emb.npy', 
+	    L_emb = '../derivatives/analysis/gradients/sub-{subject}/sub-{subject}_L_emb.npy'   
     #conda: 'cfg/bspace.yml'
     group: 'pre_align'
-    script: 'scripts/striatum.py'
+    script: 'scripts/cortex_LR.py'
 
 
 
@@ -76,16 +76,16 @@ rule get_surface_gradients:
 	shell: 'mkdir -p {params.stat_out_path} && bash scripts/get_surf {input.surf_lh} {input.surf_rh} {input.gradient_csv} {params.stat_out_path}'
 
 rule test_group:
-    input: grads_path = directory('../derivatives/analysis/striatum_grad_emb/')
+    input: grads_path = directory('../derivatives/analysis/grad_emb/')
               
     params: subj = subjects,
-            aligned_grads_path = '../derivatives/analysis/striatum_aligned_gradients'
+            aligned_grads_path = '../derivatives/analysis/aligned_gradients'
 
-    output: aligned_grads = expand('../derivatives/analysis/striatum_aligned_gradients/sub-{subject}_gradients.csv',subject=subjects)
+    output: aligned_grads = expand('../derivatives/analysis/aligned_gradients/sub-{subject}_gradients.csv',subject=subjects)
 
 
     group: 'post_align'
-    script: 'scripts/striatum_procrust.py'
+    script: 'scripts/procrust.py'
 
 
 rule get_stat:
@@ -131,7 +131,7 @@ rule get_stat_plots:
            gradient = '../derivatives/analysis/aligned_gradients/sub-{subject}_gradients.csv'  
 
     output: lh_stat_plots = '../derivatives/analysis/hcp_stat/sub-{subject}/{subject}_hcp_all_stat_lh.png',
-    		rh_stat_plots = '../derivatives/analysis/hcp_stat/sub-{subject}/{subject}_hcp_all_stat_rh.png'
+    		rh_stat_plots = '../derivatives/analysis/hcp_stat/sub-{subject}/{subject}_hcp_sall_stat_rh.png'
 
     group: 'stat'
     script: 'scripts/combine_csv.py'
